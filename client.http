@@ -1,0 +1,62 @@
+### Payment Endpoint - manual test requests
+###
+### Works with the VS Code "REST Client" extension or the JetBrains
+### built-in HTTP client. Open this file and click "Send Request" above
+### each block, top to bottom.
+###
+### Before running: start the app (`python run.py`) and seed demo data:
+###   python scripts/seed_dev_data.py
+### which creates:
+###   user_id=1 (working card)   -> cart_id=1  ($20.00)
+###   user_id=2 (card declines)  -> cart_id=2  ($10.00)
+
+@baseUrl = http://localhost:5000
+@workingUserId = 1
+@workingCartId = 1
+@decliningUserId = 2
+@decliningCartId = 2
+@idempotencyKey = 3f8e2b7a-9c1d-4e2a-8b3f-1a2b3c4d5e6f
+
+
+### 1. Successful payment (200)
+POST {{baseUrl}}/api/v1/carts/{{workingCartId}}/pay
+X-User-Id: {{workingUserId}}
+Idempotency-Key: {{idempotencyKey}}
+
+
+### 2. Replay the exact same request (same Idempotency-Key) -> same
+###    result is returned, the card is NOT charged again (still 200)
+POST {{baseUrl}}/api/v1/carts/{{workingCartId}}/pay
+X-User-Id: {{workingUserId}}
+Idempotency-Key: {{idempotencyKey}}
+
+
+### 3. Pay for the same cart again WITHOUT the idempotency key
+###    -> cart is already paid -> 409
+POST {{baseUrl}}/api/v1/carts/{{workingCartId}}/pay
+X-User-Id: {{workingUserId}}
+
+
+### 4. Missing X-User-Id header -> 400
+POST {{baseUrl}}/api/v1/carts/{{workingCartId}}/pay
+
+
+### 5. Cart does not exist -> 404
+POST {{baseUrl}}/api/v1/carts/999999/pay
+X-User-Id: {{workingUserId}}
+
+
+### 6. Cart belongs to a different user -> 403
+POST {{baseUrl}}/api/v1/carts/{{workingCartId}}/pay
+X-User-Id: {{decliningUserId}}
+
+
+### 7. Payment provider declines the card -> 402 (cart stays open)
+POST {{baseUrl}}/api/v1/carts/{{decliningCartId}}/pay
+X-User-Id: {{decliningUserId}}
+
+
+### 8. Retry after the decline (run request 7 again) -> still 402 until
+###    the saved payment method is updated to a working token
+POST {{baseUrl}}/api/v1/carts/{{decliningCartId}}/pay
+X-User-Id: {{decliningUserId}}
