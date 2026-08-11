@@ -373,12 +373,12 @@ curl -i -X POST http://127.0.0.1:5000/api/v1/carts/999999/pay \
 **Declined card → 402**
 
 Requires a `payment_methods.provider_card_token` value ending in
-`_declined` or `_insufficient_funds` for the mock provider to reject it
+`_declined` or `_insufficient_funds` for the mock provider to reject it, User 2 has cart 2 but the payment method is mock to be declined 
 (see `app/payment_provider.py`):
 
 ```bash
-curl -i -X POST http://127.0.0.1:5000/api/v1/carts/1/pay \
-  -H "X-User-Id: 1"
+curl -i -X POST http://127.0.0.1:5000/api/v1/carts/2/pay \
+  -H "X-User-Id: 2"
 ```
 
 **Already-paid cart → 409**

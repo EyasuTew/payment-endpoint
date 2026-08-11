@@ -21,6 +21,9 @@ Three configurations are provided:
 """
 
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class BaseConfig:
@@ -41,7 +44,7 @@ class DevelopmentConfig(BaseConfig):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL",
-        "postgresql+psycopg2://root:Alpha323@localhost:5432/payments_db",
+        "postgresql+psycopg2://rootp:Alpha323@localhost:5432/payments_db",
     )
 
 
